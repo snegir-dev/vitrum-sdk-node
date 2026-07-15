@@ -1,5 +1,7 @@
 # Vitrum Node SDK
 
+Canonical repository name: `vitrum-sdk-node`.
+
 This repository will contain the official `@vitrum/node` package: a Node-API
 control addon, JavaScript/TypeScript facade, and platform packages for the
 separate Vitrum runtime.
