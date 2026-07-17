@@ -1,6 +1,7 @@
 /.idea/
 /.vscode/
 /target/
+/graphify-out/
 **/node_modules/
 **/dist/
 *.node
