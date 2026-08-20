@@ -104,7 +104,7 @@ export class RuntimeTransport {
       windowsHide: true,
     });
     const exitPromise = new Promise((resolve) => {
-      child.once("exit", resolve);
+      child.once("exit", (code, signal) => resolve({ code, signal }));
     });
     let rejectSpawn;
     const spawnFailure = new Promise((_, reject) => {
@@ -121,6 +121,7 @@ export class RuntimeTransport {
     const reader = new ByteReader(child.stdout);
     const duringHandshake = (promise, operation) =>
       withTimeout(Promise.race([promise, spawnFailure]), timeoutMs, operation);
+    let sessionKey;
     try {
       await duringHandshake(writeAll(input, secret), "writing runtime bootstrap secret");
       const hello = await duringHandshake(
@@ -129,7 +130,7 @@ export class RuntimeTransport {
       );
       const parsedHello = verifyServerHello(secret, hello);
       const authentication = createClientAuthentication(secret, hello, parsedHello.epoch);
-      const sessionKey = hmac(secret, SESSION_KEY_DOMAIN, hello, authentication);
+      sessionKey = hmac(secret, SESSION_KEY_DOMAIN, hello, authentication);
       secret.fill(0);
       await duringHandshake(
         writeAll(input, authentication),
@@ -157,6 +158,7 @@ export class RuntimeTransport {
     } catch (error) {
       child.off("error", onSpawnError);
       secret.fill(0);
+      sessionKey?.fill(0);
       if (child.exitCode === null && child.signalCode === null) child.kill();
       throw error;
     }
@@ -193,16 +195,39 @@ export class RuntimeTransport {
   }
 
   async close() {
-    if (!this.#closed) {
+    const requestedGracefulExit = !this.#closed;
+    if (requestedGracefulExit) {
       this.#closed = true;
       this.#closeNotified = true;
       this.#sessionKey.fill(0);
       this.#input.end();
+    }
+
+    let exit;
+    try {
+      exit = await withTimeout(this.#exitPromise, 5_000, "waiting for Vitrum runtime exit");
+    } catch (error) {
       if (this.#child.exitCode === null && this.#child.signalCode === null) {
         this.#child.kill();
       }
+      try {
+        await withTimeout(
+          this.#exitPromise,
+          1_000,
+          "waiting for Vitrum runtime after forced termination",
+        );
+      } catch {
+        // Preserve the graceful-shutdown timeout; forced termination is only
+        // a bounded last-resort cleanup attempt.
+      }
+      throw error;
     }
-    await withTimeout(this.#exitPromise, 5_000, "waiting for Vitrum runtime exit");
+
+    if (requestedGracefulExit && (exit.code !== 0 || exit.signal !== null)) {
+      throw new ConnectionClosedError(
+        `Vitrum runtime did not exit gracefully (code=${String(exit.code)}, signal=${String(exit.signal)})`,
+      );
+    }
   }
 
   async #pump() {

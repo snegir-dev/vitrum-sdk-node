@@ -56,8 +56,16 @@ There is no automatic command, View, package, or state replay.
 - `DUPLICATE_REQUEST`: a correlation is already pending.
 
 Handshake failure kills the child. Frame/authentication failure destroys the
-pipe and kills the child. Explicit close waits at most five seconds for process
-exit. Secret and session-key buffers are overwritten when their ownership ends.
+pipe and kills the child. Explicit close first closes stdin so the runtime can
+run its bounded Engine disconnect shutdown, then waits at most five seconds for
+a clean zero-code process exit. Forced termination is only a timeout escalation.
+Secret and session-key buffers are overwritten when their ownership ends.
+
+The runtime input owner uses a one-slot channel: at most one authenticated frame
+is queued and one is held by a blocked reader before bounded OS-pipe
+backpressure applies. Ordinary terminal request correlations are released
+immediately; only pending work and the current successful package activation
+for each live View remain addressable.
 
 ## Verification
 
