@@ -2,8 +2,7 @@
 
 Last updated: 2026-08-21
 
-Status: **FH-006 REVIEW COMPLETE — closure recording pending; full SDK remains
-pre-release.**
+Status: **FH-006 CLOSED — full SDK remains pre-release.**
 
 The canonical repository and checkout directory name is `vitrum-sdk-node`.
 
@@ -43,11 +42,16 @@ no-replay, graceful idle/busy-output drain, and timeout escalation. Independent
 GPT-5.6 Sol found and drove correction of the early-kill/stdout-drain defects,
 then reported no P0--P3 findings and `VERDICT: NO BLOCKER` on this exact pair.
 
+Node closure preparation is
+`0be8f48866832126db9fca30d287278915a82d1f`; Engine closure preparation is
+`7d8a8f04e1074ee5e75c62f6c13a03e57a7ac675`, and its recorder is contained by
+Engine local `main` at `af1bf9ec1d92a517f4af89b80a590dec6b91efa8`. The
+dedicated Node task worktree is retired with its branch history retained.
+
 Graphify integration PASS on 2026-07-17: `graphify --version` reported
 `0.8.50`; `graphify codex install --project` created the project-scoped Codex
 skill and hook; and the generated `graphify-out/` path is ignored. This remains
 tooling evidence independent of the FH-006 product gate.
 
-Next action: record this repository's closure preparation and the Engine
-closure recorder, then continue M5 with the native Protocol codec and Node-API
-facade without linking V8.
+Next action: continue M5 with the native Protocol codec and Node-API facade
+without linking V8.
