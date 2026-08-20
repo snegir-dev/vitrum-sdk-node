@@ -10,7 +10,8 @@ These instructions apply to the Vitrum Node SDK.
 4. IPC uses the engine's authenticated, versioned protocol and public DTOs.
 5. Publishable packages pin exact native platform packages and contain no
    postinstall download.
-6. Do not claim SDK readiness while this repository is `DOCS-ONLY`.
+6. FH-006 implements only transport/reconnect fencing. Do not claim complete SDK
+   readiness until the Node-API facade, packaging, and remaining M5 gates land.
 7. Update `docs/STATUS.md` with tests and next action after every work session.
 
 ## graphify
