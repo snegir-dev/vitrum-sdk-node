@@ -66,8 +66,20 @@ export class RuntimeTransport {
   #receiveSequence = 1n;
   #writeChain = Promise.resolve();
   #exitPromise;
+  #timeoutMs;
 
-  constructor({ child, input, reader, epoch, sessionId, sessionKey, exitPromise, onFrame, onClose }) {
+  constructor({
+    child,
+    input,
+    reader,
+    epoch,
+    sessionId,
+    sessionKey,
+    exitPromise,
+    timeoutMs = 5_000,
+    onFrame,
+    onClose,
+  }) {
     this.#child = child;
     this.#input = input;
     this.#reader = reader;
@@ -77,6 +89,7 @@ export class RuntimeTransport {
     this.#onFrame = onFrame;
     this.#onClose = onClose;
     this.#exitPromise = exitPromise;
+    this.#timeoutMs = timeoutMs;
     child.once("exit", (code, signal) => {
       this.#notifyClose(
         new ConnectionClosedError(
@@ -150,6 +163,7 @@ export class RuntimeTransport {
         sessionId,
         sessionKey,
         exitPromise,
+        timeoutMs,
         onFrame,
         onClose,
       });
@@ -199,13 +213,17 @@ export class RuntimeTransport {
     if (requestedGracefulExit) {
       this.#closed = true;
       this.#closeNotified = true;
-      this.#sessionKey.fill(0);
       this.#input.end();
     }
 
     let exit;
     try {
-      exit = await withTimeout(this.#exitPromise, 5_000, "waiting for Vitrum runtime exit");
+      exit = await withTimeout(
+        this.#exitPromise,
+        this.#timeoutMs,
+        "waiting for Vitrum runtime exit",
+        (message) => new ConnectionClosedError(message),
+      );
     } catch (error) {
       if (this.#child.exitCode === null && this.#child.signalCode === null) {
         this.#child.kill();
@@ -213,14 +231,17 @@ export class RuntimeTransport {
       try {
         await withTimeout(
           this.#exitPromise,
-          1_000,
+          Math.min(this.#timeoutMs, 1_000),
           "waiting for Vitrum runtime after forced termination",
+          (message) => new ConnectionClosedError(message),
         );
       } catch {
         // Preserve the graceful-shutdown timeout; forced termination is only
         // a bounded last-resort cleanup attempt.
       }
       throw error;
+    } finally {
+      this.#sessionKey.fill(0);
     }
 
     if (requestedGracefulExit && (exit.code !== 0 || exit.signal !== null)) {
@@ -232,7 +253,7 @@ export class RuntimeTransport {
 
   async #pump() {
     try {
-      while (!this.#closed) {
+      while (true) {
         const header = await this.#reader.readExact(FRAME_HEADER_BYTES);
         const payloadLength = this.#inspectHeader(header);
         const payload = await this.#reader.readExact(payloadLength);
@@ -242,7 +263,7 @@ export class RuntimeTransport {
           throw new AuthenticationError("runtime frame authentication failed");
         }
         this.#receiveSequence += 1n;
-        this.#onFrame(Buffer.from(payload));
+        if (!this.#closed) this.#onFrame(Buffer.from(payload));
       }
     } catch (error) {
       if (!this.#closed) {
@@ -387,16 +408,20 @@ function writeAll(stream, bytes) {
   });
 }
 
-function withTimeout(promise, timeoutMs, operation) {
+function withTimeout(
+  promise,
+  timeoutMs,
+  operation,
+  createError = (message) => new HandshakeError(message),
+) {
   let timer;
   return Promise.race([
     promise,
     new Promise((_, reject) => {
       timer = setTimeout(
-        () => reject(new HandshakeError(`timed out ${operation}`)),
+        () => reject(createError(`timed out ${operation}`)),
         timeoutMs,
       );
-      timer.unref?.();
     }),
   ]).finally(() => clearTimeout(timer));
 }

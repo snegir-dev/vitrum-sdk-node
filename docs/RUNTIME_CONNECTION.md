@@ -59,7 +59,12 @@ Handshake failure kills the child. Frame/authentication failure destroys the
 pipe and kills the child. Explicit close first closes stdin so the runtime can
 run its bounded Engine disconnect shutdown, then waits at most five seconds for
 a clean zero-code process exit. Forced termination is only a timeout escalation.
-Secret and session-key buffers are overwritten when their ownership ends.
+While closing, the transport rejects new sends and suppresses callbacks but
+continues authenticating and draining stdout until EOF so event-pipe pressure
+cannot deadlock Engine shutdown. The session key is overwritten after process
+exit; other secret buffers are overwritten as soon as their ownership ends. A
+graceful-close deadline failure is reported as `CONNECTION_CLOSED`, not as a
+handshake error.
 
 The runtime input owner uses a one-slot channel: at most one authenticated frame
 is queued and one is held by a blocked reader before bounded OS-pipe
