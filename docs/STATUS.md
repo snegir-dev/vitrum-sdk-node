@@ -35,14 +35,16 @@ FH-006 local evidence on 2026-08-20: `npm run check` passed 10/10 tests on
 Node 22 with no skips against the sibling Engine runtime. This includes real
 process restart, two simultaneous runtime processes, early spawn failure,
 atomic handle/pending invalidation, late-event isolation, and no mutation
-replay. Exact coordinated commit SHAs and the independent review verdict are
-recorded when the review candidate is committed.
+replay. Evidence and independent review cover exact Node candidate
+`16148d312868642305e71fa5423fff91dfe5ae0e` with Engine candidate
+`03af5df94cb4f152eee6db3bdc5c9f4b32631d22`; independent GPT-5.6 Sol reported
+no P0--P3 findings and `VERDICT: NO BLOCKER`.
 
 Graphify integration PASS on 2026-07-17: `graphify --version` reported
 `0.8.50`; `graphify codex install --project` created the project-scoped Codex
 skill and hook; and the generated `graphify-out/` path is ignored. This remains
 tooling evidence independent of the FH-006 product gate.
 
-Next action: independently review the exact FH-006 Engine/Node candidate set,
-then continue M5 with the native Protocol codec and Node-API facade without
-linking V8.
+Next action: integrate the reviewed branch after preserving the unrelated dirty
+documentation edits in the primary Node worktree, then continue M5 with the
+native Protocol codec and Node-API facade without linking V8.
