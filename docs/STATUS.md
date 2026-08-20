@@ -1,8 +1,8 @@
 # Vitrum Node SDK status
 
-Last updated: 2026-08-20
+Last updated: 2026-08-21
 
-Status: **FH-006 TRANSPORT/RECONNECT SLICE IMPLEMENTED — full SDK remains
+Status: **FH-006 REVIEW COMPLETE — closure recording pending; full SDK remains
 pre-release.**
 
 The canonical repository and checkout directory name is `vitrum-sdk-node`.
@@ -34,20 +34,20 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check.ps1 `
   -RuntimePath ..\vitrum-engine\target\debug\vitrum-runtime.exe
 ```
 
-FH-006 local evidence on 2026-08-20: `npm run check` passed 10/10 tests on
-Node 22 with no skips against the sibling Engine runtime. This includes real
-process restart, two simultaneous runtime processes, early spawn failure,
-atomic handle/pending invalidation, late-event isolation, and no mutation
-replay. Evidence and independent review cover exact Node candidate
-`16148d312868642305e71fa5423fff91dfe5ae0e` with Engine candidate
-`03af5df94cb4f152eee6db3bdc5c9f4b32631d22`; independent GPT-5.6 Sol reported
-no P0--P3 findings and `VERDICT: NO BLOCKER`.
+FH-006 exact evidence on 2026-08-21 covers Node
+`ec3f72ce1b578460d9a56c7427e30803bdac402b` with Engine
+`3a2553101454efc33d72af8d95642a9519767491`. `npm run check` passed 14/14 on
+Node 22 with no skips against the sibling Engine runtime: restart, two live
+processes, spawn failure, generation invalidation, late-event isolation,
+no-replay, graceful idle/busy-output drain, and timeout escalation. Independent
+GPT-5.6 Sol found and drove correction of the early-kill/stdout-drain defects,
+then reported no P0--P3 findings and `VERDICT: NO BLOCKER` on this exact pair.
 
 Graphify integration PASS on 2026-07-17: `graphify --version` reported
 `0.8.50`; `graphify codex install --project` created the project-scoped Codex
 skill and hook; and the generated `graphify-out/` path is ignored. This remains
 tooling evidence independent of the FH-006 product gate.
 
-Next action: qualify and independently review the integrated Engine/Node main
-SHAs, close FH-006, then continue M5 with the native Protocol codec and Node-API
+Next action: record this repository's closure preparation and the Engine
+closure recorder, then continue M5 with the native Protocol codec and Node-API
 facade without linking V8.
