@@ -23,6 +23,6 @@ graphify update .
 
 This graph contains only `vitrum-sdk-node`. For a question spanning sibling
 repositories, run `$graphify .` from the plain `Vitrum` parent directory; it
-does not create a shared Git workspace or permit Vitrum V8 inside Node. If the
+does not create a shared Git workspace or alter the Node/Native-runtime boundary. If the
 Graphify executable moves, run `graphify codex install --project` here to
 refresh the local Codex integration.

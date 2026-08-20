@@ -1,18 +1,16 @@
 # Vitrum Node SDK status
 
-Last updated: 2026-07-17
+Last updated: 2026-07-19
 
-Status: **DOCS-ONLY — M5 implementation has not started.**
-
-The canonical repository and checkout directory name is `vitrum-sdk-node`.
-
-Graphify is installed as project-scoped Codex tooling. Its generated
-`graphify-out/` directory is ignored, and `docs/GRAPHIFY.md` keeps the tool
-outside the Node-API and authenticated-IPC contract.
+Status: **DOCS-ONLY — implementation has not started.**
 
 There is no `.node` addon, npm package, IPC client, or runtime package. The
-offscreen Node widget under the sibling `vitrum-examples` repository is an M1
-developer prototype and is not this SDK.
+sibling offscreen example is an M1 prototype, not this SDK.
+
+Engine has switched its target architecture to native HTML/CSS with Rust-owned
+behavior. This SDK will control a separate V8-free Engine runtime, load declared
+packages, and map action/lifecycle/capability events to Node. It will not send
+widget JavaScript or link the retained legacy V8 implementation.
 
 Verification:
 
@@ -20,13 +18,8 @@ Verification:
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check.ps1
 ```
 
-PASS on 2026-07-15 after the canonical directory rename. This validates only
-the documentation scaffold; the Node SDK remains unimplemented.
+PASS on 2026-07-15 for documentation scaffold only.
 
-Graphify integration PASS on 2026-07-17: `graphify --version` reported
-`0.8.50`; `graphify codex install --project` created the project-scoped Codex
-skill and hook; and the generated `graphify-out/` path is ignored. This is
-tooling verification only; the SDK remains `DOCS-ONLY`.
-
-Next action: after Engine freezes the runtime bootstrap and authenticated IPC
-handshake, scaffold the Node-API addon without linking V8.
+Next action: wait for Engine M3.0/M3.2 to freeze V8-free runtime bootstrap,
+native package/action DTOs, and authenticated IPC requirements; then scaffold
+the Node-API addon without Engine internals.

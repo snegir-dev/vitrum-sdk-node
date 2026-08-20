@@ -3,8 +3,8 @@
 These instructions apply to the Vitrum Node SDK.
 
 1. Read all local docs and inspect this repository's Git status first.
-2. Never link rusty_v8 or engine V8 into Node. The addon is a Node-API control
-   layer for a separate runtime process.
+2. Never link legacy engine V8 into Node. The addon is a Node-API control layer
+   for a separate V8-free native runtime process.
 3. Public operations are asynchronous Promises/events; do not block Node's
    event loop or call JS after environment cleanup.
 4. IPC uses the engine's authenticated, versioned protocol and public DTOs.
