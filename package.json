@@ -1,0 +1,20 @@
+{
+  "name": "@vitrum/node",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Node control layer for the isolated V8-free Vitrum runtime",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js"
+    }
+  },
+  "scripts": {
+    "test": "node --test",
+    "check": "node --check src/errors.js && node --check src/transport.js && node --check src/connection-owner.js && node --test"
+  }
+}
